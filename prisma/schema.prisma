@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.png"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                      String            @id @default(uuid()) @db.Uuid
+  name                    String            @db.VarChar(50)
+  address                 String            @db.VarChar(50)
+  phone                   String            @db.VarChar(50)
+  email                   String            @db.VarChar(50)
+  providesServiceDirectly Boolean           @default(true)
+  deletedAt               DateTime?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  Service                 Service[]
+  CompanySchedule         CompanySchedule[]
+
+  @@map("companies")
+}
+
+model Service {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(50)
+  description String       @db.VarChar(50)
+  price       Float
+  duration    Int
+  companyId   String       @db.Uuid
+  company     Company      @relation(fields: [companyId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Scheduling  Scheduling[]
+
+  @@map("services")
+}
+
+model WorkingSchedule {
+  id              String            @id @default(uuid()) @db.Uuid
+  startDate       DateTime
+  endDate         DateTime
+  active          Boolean           @default(true)
+  daysOpen        Int               @default(0)
+  deletedAt       DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  CompanySchedule CompanySchedule[]
+  TimeSlot        TimeSlot[]
+
+  @@map("working_schedules")
+}
+
+model CompanySchedule {
+  id                String          @id @default(uuid()) @db.Uuid
+  companyId         String          @db.Uuid
+  company           Company         @relation(fields: [companyId], references: [id])
+  workingScheduleId String          @db.Uuid
+  workingSchedule   WorkingSchedule @relation(fields: [workingScheduleId], references: [id])
+
+  @@map("company_schedules")
+}
+
+model TimeSlot {
+  id                String          @id @default(uuid()) @db.Uuid
+  weekDay           Int
+  startDate         DateTime
+  endDate           DateTime
+  active            Boolean         @default(true)
+  deletedAt         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  workingScheduleId String          @db.Uuid
+  workingSchedule   WorkingSchedule @relation(fields: [workingScheduleId], references: [id])
+
+  @@map("time_slots")
+}
+
+model Client {
+  id         String       @id @default(uuid()) @db.Uuid
+  name       String       @db.VarChar(50)
+  email      String       @db.VarChar(50)
+  phone      String       @db.VarChar(50)
+  address    String       @db.VarChar(50)
+  password   String
+  birthDate  DateTime
+  deletedAt  DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Scheduling Scheduling[]
+
+  @@map("clients")
+}
+
+enum SchedulingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Scheduling {
+  id        String           @id @default(uuid()) @db.Uuid
+  clientId  String           @db.Uuid
+  client    Client           @relation(fields: [clientId], references: [id])
+  serviceId String           @db.Uuid
+  service   Service          @relation(fields: [serviceId], references: [id])
+  startAt   DateTime
+  endAt     DateTime
+  status    SchedulingStatus @default(PENDING)
+  deletedAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("appointments")
+}

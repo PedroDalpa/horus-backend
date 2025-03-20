@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common'
-import { Default } from '@modules/default/default.module'
+import { CompanyModule } from '@modules/company/company.module'
 
 @Module({
-  imports: [Default],
+  imports: [CompanyModule],
   controllers: []
 })
 export class AppModule {}
