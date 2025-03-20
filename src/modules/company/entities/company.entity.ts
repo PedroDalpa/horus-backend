@@ -10,13 +10,17 @@ export class Company {
   updatedAt: Date
 
   constructor(
-    data: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<
+      Company,
+      'id' | 'createdAt' | 'updatedAt' | 'providesServiceDirectly'
+    >,
     id?: string
   ) {
     Object.assign(this, {
       id: id ?? crypto.randomUUID(),
       ...data,
-      createdAt: id ?? new Date(),
+      providesServiceDirectly: id ? this.providesServiceDirectly : true,
+      createdAt: id ? this.createdAt : new Date(),
       updatedAt: new Date()
     })
   }
